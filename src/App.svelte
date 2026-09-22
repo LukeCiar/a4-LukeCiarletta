@@ -1,89 +1,130 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from './assets/vite.svg'
-  import heroImg from './assets/hero.png'
-  import Counter from './lib/Counter.svelte'
+    const readFields = () => {
+        return [
+            {
+                // @ts-ignore
+                userName: document.querySelector('#userName')?.value,
+                // @ts-ignore
+                oppName: document.querySelector('#oppName')?.value,
+                // @ts-ignore
+                userScore: parseInt(document.querySelector('#userScore')?.value) || 0,
+                // @ts-ignore
+                oppScore: parseInt(document.querySelector('#oppScore')?.value) || 0,
+            },
+            // @ts-ignore
+            parseInt(document.querySelector('#modifying')?.value) || -1,
+        ]
+    }
+
+    const getGames = () => {
+        const p = fetch('http://localhost:3000/read', {
+            method:'GET' 
+        })
+        .then(response => response.json())
+    
+        return p
+    }
+
+    const submit = () => {
+        const [game, modifying] = readFields()
+        document.querySelector('form')?.reset() //clear form
+
+        if(modifying == -1) {
+            return addGame(game)
+        }
+        else {
+            return modifyGame(game, modifying)
+        }
+    }
+
+    const addGame = (game) => {
+        promise = fetch('http://localhost:3000/add', {
+            method:'POST',
+            body: JSON.stringify(game),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+    }
+
+    const deleteGame = (id) => {
+        promise = fetch('http://localhost:3000/delete', {
+            method: 'POST',
+            body: JSON.stringify({id}),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+    }
+
+    const modifyGame = (game, id) => {
+        game.id = id
+        promise = fetch('http://localhost:3000/modify', {
+            method:'POST',
+            body: JSON.stringify(game),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+    }
+
+    let promise = getGames()
 </script>
 
-<section id="center">
-  <div class="hero">
-    <img src={heroImg} class="base" width="170" height="179" alt="" />
-    <img src={svelteLogo} class="framework" alt="Svelte logo" />
-    <img src={viteLogo} class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/App.svelte</code> and save to test <code>HMR</code></p>
-  </div>
-  <Counter />
-</section>
+<h1>Warhammer Score Tracker</h1>
 
-<div class="ticks"></div>
+<form on:submit|preventDefault={submit}>
+    <label for="userName">Your Name</label>
+    <input type="text" id="userName" />
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#documentation-icon"></use>
-    </svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank" rel="noreferrer">
-          <img class="logo" src={viteLogo} alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://svelte.dev/" target="_blank" rel="noreferrer">
-          <img class="button-icon" src={svelteLogo} alt="" />
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#social-icon"></use>
-    </svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li>
-        <a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#github-icon"></use>
-          </svg>
-          GitHub
-        </a>
-      </li>
-      <li>
-        <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#discord-icon"></use>
-          </svg>
-          Discord
-        </a>
-      </li>
-      <li>
-        <a href="https://x.com/vite_js" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#x-icon"></use>
-          </svg>
-          X.com
-        </a>
-      </li>
-      <li>
-        <a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#bluesky-icon"></use>
-          </svg>
-          Bluesky
-        </a>
-      </li>
-    </ul>
-  </div>
-</section>
+    <label for="oppName">Opponent's Name</label>
+    <input type="text" id="oppName" />
 
-<div class="ticks"></div>
-<section id="spacer"></section>
+    <label for="userScore">Your Score</label>
+    <input type="number" id="userScore" />
+    
+    <label for="oppScore">Opponent's Score</label>
+    <input type="number" id="oppScore" />
+
+    <div id="submitContainer">
+        <input type="submit" id="submit" value="Submit" />
+        <label for="modifying" id="modifyingLabel">Modifying:</label>
+        <input type="number" id="modifying" />
+    </div>
+</form>
+
+{#await promise then games}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Your Name</th>
+                <th>Opponent's Name</th>
+                <th>Your Score</th>
+                <th>Opponent's Score</th>
+                <th>Result</th>
+                <th>Del.</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {#each games as game}
+                <tr>
+                    <td>{game.id}</td>
+                    <td>{game.userName}</td>
+                    <td>{game.oppName}</td>
+                    <td>{game.userScore}</td>
+                    <td>{game.oppScore}</td>
+                    <td>{game.result}</td>
+                    <td><button on:click={() => {deleteGame(game.id)}}>
+                        <img class="icon" src="icons/delete.png" alt="Delete"/>
+                    </button></td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+{/await}
+
+<p>
+    To modify a game, enter the new details in the form fields,
+    enter the ID of the game to modify in the modifying box,
+    then press submit.
+
+</p>
