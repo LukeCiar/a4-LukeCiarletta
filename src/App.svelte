@@ -1,7 +1,6 @@
 <script>
 
     const serverAddress = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
-    console.log(import.meta.env)
 
     const readFields = () => {
         return [
