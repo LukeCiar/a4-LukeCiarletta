@@ -2,8 +2,10 @@ import express from 'express'
 import ViteExpress from 'vite-express'
 const app = express()
 
-const games = []
-let nextId = 0
+const games = [
+    {userName: "Luke", oppName: "John", userScore: 65, oppScore: 58, result: "Win", id: 0}
+]
+let nextId = 1
 
 app.use(express.json())
 app.use(express.static('public'))
