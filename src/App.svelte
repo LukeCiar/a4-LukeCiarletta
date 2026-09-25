@@ -1,4 +1,8 @@
 <script>
+
+    const serverAddress = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
+    console.log(import.meta.env)
+
     const readFields = () => {
         return [
             {
@@ -17,7 +21,7 @@
     }
 
     const getGames = () => {
-        const p = fetch('http://localhost:3000/read', {
+        const p = fetch(`${serverAddress}/read`, {
             method:'GET' 
         })
         .then(response => response.json())
@@ -38,7 +42,7 @@
     }
 
     const addGame = (game) => {
-        promise = fetch('http://localhost:3000/add', {
+        promise = fetch(`${serverAddress}/add`, {
             method:'POST',
             body: JSON.stringify(game),
             headers: { 'Content-Type': 'application/json' }
@@ -47,7 +51,7 @@
     }
 
     const deleteGame = (id) => {
-        promise = fetch('http://localhost:3000/delete', {
+        promise = fetch(`${serverAddress}/delete`, {
             method: 'POST',
             body: JSON.stringify({id}),
             headers: { 'Content-Type': 'application/json' }
@@ -57,7 +61,7 @@
 
     const modifyGame = (game, id) => {
         game.id = id
-        promise = fetch('http://localhost:3000/modify', {
+        promise = fetch(`${serverAddress}/modify`, {
             method:'POST',
             body: JSON.stringify(game),
             headers: { 'Content-Type': 'application/json' }
